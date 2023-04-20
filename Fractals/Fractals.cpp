@@ -70,77 +70,11 @@ int game_screen_height;
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-#define START_POS   -0.5
-#define START_ZOOM  (WIDTH * 0.25296875f)
 
-#define BAIL_OUT        2.0
-#define FLIPS           24
+#include "mandelbrot.h"
+#define MANDELBROT 1
+#define JULIA 0
 
-#define ZOOM_FACTOR     4
-
-# define M_LN2          0.69314718055994530942  /* log_e 2 */
-
-//#define complex _Dcomplex
-
-void sdl_draw_mandelbrot(SDL_Window* window, SDL_Surface* surface, _Dcomplex center, double zoom)
-{
-    int f, x, y, n;
-    int maxiter = (WIDTH / 2) * 0.049715909 * log10(zoom);
-    _Dcomplex z, c;
-    float C;
-    static SDL_Rect rects[HEIGHT / FLIPS];
-
-    fprintf(stderr, "zoom: %f\n", zoom);
-    fprintf(stderr, "center point: %f %+fi\n", creal(center),
-        cimag(center));
-    fprintf(stderr, "iterations: %d\n", maxiter);
-
-    SDL_LockSurface(surface);
-
-    for (f = 0; f < FLIPS; f++)
-    {
-        for (y = f; y < HEIGHT; y += FLIPS)
-        {
-            for (x = 0; x < WIDTH; x++)
-            {
-                /* Get the complex point on gauss space to be calculated */
-                z = c = { (creal(center) + (x - (WIDTH / 2)) / zoom),
-                    (cimag(center) + (y - (HEIGHT / 2)) / zoom) };
-
-#define X creal(z)
-#define Y cimag(z)
-
-                /* Check if point lies within the main cardiod or
-                   in the period-2 buld */
-                if ((pow(X - .25, 2) + pow(Y, 2)) * (pow(X, 2) + (X / 2) + pow(Y, 2) - .1875) < pow(Y, 2) / 4 ||
-                    pow(X + 1, 2) + pow(Y, 2) < .0625)
-                    n = maxiter;
-                else
-                    /* Applies the actual mandelbrot formula on that point */
-                    for (n = 0; n <= maxiter && cabs(z) < BAIL_OUT; n++)
-                        z = { creal(cpow(z, { 2,0 })) + creal(c),
-                                cimag(cpow(z, { 2,0 })) + cimag(c) };
-
-                C = n - log2f(logf(cabs(z)) / M_LN2);
-
-                /* Paint the pixel calculated depending on the number
-                   of iterations found */
-                ((Uint32*)surface->pixels)[(y * surface->w) + x] = (n >= maxiter) ? 0 :
-                    SDL_MapRGB(surface->format,
-                        (1 + sin(C * 0.27 + 5)) * 127., (1 + cos(C * 0.85)) * 127., (1 + sin(C * 0.15)) * 127.);
-            }
-            rects[y / FLIPS].x = 0;
-            rects[y / FLIPS].y = y;
-            rects[y / FLIPS].w = WIDTH;
-            rects[y / FLIPS].h = 1;
-        }
-        SDL_UnlockSurface(surface);
-        SDL_UpdateWindowSurface(window);
-    }
-
-
-
-}
 
 
 
@@ -206,9 +140,14 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
     SDL_Surface* surface = SDL_GetWindowSurface(window);
 
     // one time init for fractals 
+#if MANDELBROT
     _Dcomplex center = { START_POS, 0.0 };
     double zoom = START_ZOOM;
     sdl_draw_mandelbrot(window, surface, center, zoom);
+#endif
+#if JULIA
+    sdl_draw_mandelbrot(window, surface, center, zoom);
+#endif
 
 
     // Set the frame rate
@@ -240,10 +179,11 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
                     game_screen_width = event.window.data1;
                     game_screen_height = event.window.data2;
                     // Do something with newWidth and newHeight
+#if MANDELBROT
                     center = { START_POS, 0.0 };
                     zoom = START_ZOOM;
                     sdl_draw_mandelbrot(window, surface, center, zoom);
-
+#endif
                 }
             }
             if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_f)
@@ -251,9 +191,11 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
                 // Toggle full screen mode
                 fullScreen = !fullScreen;
                 SDL_SetWindowFullscreen(window, fullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+#if MANDELBROT
                 center = { START_POS, 0.0 };
                 zoom = START_ZOOM;
                 sdl_draw_mandelbrot(window, surface, center, zoom);
+#endif
             }
             if (event.type == SDL_KEYDOWN)
             {
@@ -268,9 +210,11 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
                 else if (event.key.keysym.sym == SDLK_SPACE) 
                 {
                     // Do something 
+#if MANDELBROT
                     center = { START_POS, 0.0 };
                     zoom = START_ZOOM;
                     sdl_draw_mandelbrot(window, surface, center, zoom);
+#endif
                 }
             }
             else if (event.type == SDL_KEYUP)
@@ -289,7 +233,6 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
                 if ((event.button.button == 1) && (bReady_1))
                 {
                     bReady_1 = 0;
-                    zoom *= ZOOM_FACTOR;
 
                     // Handle mouse input
                     int mouseX, mouseY;
@@ -303,15 +246,17 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
                     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
                     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+#if MANDELBROT
+                    zoom *= ZOOM_FACTOR;
                     center = { creal(center) + (mouseX - (WIDTH / 2)) / zoom,
                                 cimag(center) + (mouseY - (HEIGHT / 2)) / zoom };
 
                     sdl_draw_mandelbrot(window, surface, center, zoom);
+#endif
                 }                
                 if ((event.button.button == 3) && (bReady_3))
                 {
                     bReady_3 = 0;
-                    zoom /= ZOOM_FACTOR;
 
                     // Handle mouse input
                     int mouseX, mouseY;
@@ -325,10 +270,13 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
                     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
                     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+#if MANDELBROT
+                    zoom /= ZOOM_FACTOR;
                     center = { creal(center) + (mouseX - (WIDTH / 2)) / zoom,
                                 cimag(center) + (mouseY - (HEIGHT / 2)) / zoom };
 
                     sdl_draw_mandelbrot(window, surface, center, zoom);
+#endif
                 }
             }
             else if (event.type == SDL_MOUSEBUTTONUP)

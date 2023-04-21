@@ -39,6 +39,9 @@ add_comments
 
 /*
 https://www.geeksforgeeks.org/fractals-in-cc/
+
+https://rosettacode.org/wiki/Julia_set
+https://www.geeksforgeeks.org/julia-fractal-set-in-c-c-using-graphics/
 */
 
 
@@ -67,13 +70,87 @@ int game_screen_height;
 
 #include <complex.h>
 
-const int WIDTH = 800;
-const int HEIGHT = 600;
 
 
 #include "mandelbrot.h"
 #define MANDELBROT 1
 #define JULIA 0
+
+
+
+typedef struct {
+    double x, y;
+}complex;
+
+complex add(complex a, complex b) {
+    complex c;
+    c.x = a.x + b.x;
+    c.y = a.y + b.y;
+    return c;
+}
+
+complex sqr(complex a) {
+    complex c;
+    c.x = a.x * a.x - a.y * a.y;
+    c.y = 2 * a.x * a.y;
+    return c;
+}
+
+double mod(complex a) {
+    return sqrt(a.x * a.x + a.y * a.y);
+}
+
+complex mapPoint(int width, int height, double radius, int x, int y) {
+    complex c;
+    int l = (width < height) ? width : height;
+
+    c.x = 2 * radius * (x - width / 2.0) / l;
+    c.y = 2 * radius * (y - height / 2.0) / l;
+
+    return c;
+}
+
+void juliaSet(SDL_Window* window, int width, int height, complex c, double radius, int n) {
+    
+    // https://rosettacode.org/wiki/Julia_set
+    
+    int x, y, i;
+    complex z0, z1;
+
+    // Create the surface
+    SDL_Surface* surface = SDL_GetWindowSurface(window);
+    
+    SDL_LockSurface(surface);
+
+    for (x = 0; x < width; x++)
+    {
+        for (y = 0; y < height; y++) 
+        {
+            z0 = mapPoint(width, height, radius, x, y);
+            for (i = 1; i <= n; i++) {
+                z1 = add(sqr(z0), c);
+                if (mod(z1) > radius) {
+
+                    /* Paint the pixel calculated depending on the number of iterations found */
+//                    putpixel(x, y, i % 15 + 1);
+                    ((Uint32*)surface->pixels)[(y * surface->w) + x] = i % 15 + 1;
+
+                    break;
+                }
+                z0 = z1;
+            }
+            if (i > n)
+            {
+                /* Paint the pixel calculated depending on the number of iterations found */
+//                putpixel(x, y, 0);
+                ((Uint32*)surface->pixels)[(y * surface->w) + x] = 0;
+            }
+        }
+    }
+    SDL_UnlockSurface(surface);
+    SDL_UpdateWindowSurface(window);
+
+}
 
 
 
@@ -136,19 +213,17 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
         return -1;
     }
 
-    // Create the surface
-    SDL_Surface* surface = SDL_GetWindowSurface(window);
 
     // one time init for fractals 
 #if MANDELBROT
     _Dcomplex center = { START_POS, 0.0 };
     double zoom = START_ZOOM;
-    sdl_draw_mandelbrot(window, surface, center, zoom);
+    sdl_draw_mandelbrot(window, game_screen_width, game_screen_height, center, zoom);
 #endif
 #if JULIA
-    sdl_draw_mandelbrot(window, surface, center, zoom);
+    complex reference_c = {0.5, 0.5};
+    juliaSet(window, game_screen_width, game_screen_height, reference_c, 1.0, 10);
 #endif
-
 
     // Set the frame rate
     const int FPS = 60;
@@ -182,7 +257,11 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 #if MANDELBROT
                     center = { START_POS, 0.0 };
                     zoom = START_ZOOM;
-                    sdl_draw_mandelbrot(window, surface, center, zoom);
+                    sdl_draw_mandelbrot(window, game_screen_width, game_screen_height, center, zoom);
+#endif
+#if JULIA
+                    reference_c = { 0.5, 0.5 };
+                    juliaSet(window, game_screen_width, game_screen_height, reference_c, 1.0, 10);
 #endif
                 }
             }
@@ -194,7 +273,11 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 #if MANDELBROT
                 center = { START_POS, 0.0 };
                 zoom = START_ZOOM;
-                sdl_draw_mandelbrot(window, surface, center, zoom);
+                sdl_draw_mandelbrot(window, game_screen_width, game_screen_height, center, zoom);
+#endif
+#if JULIA
+                reference_c = { 0.5, 0.5 };
+                juliaSet(window, game_screen_width, game_screen_height, reference_c, 1.0, 10);
 #endif
             }
             if (event.type == SDL_KEYDOWN)
@@ -213,7 +296,11 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 #if MANDELBROT
                     center = { START_POS, 0.0 };
                     zoom = START_ZOOM;
-                    sdl_draw_mandelbrot(window, surface, center, zoom);
+                    sdl_draw_mandelbrot(window, game_screen_width, game_screen_height, center, zoom);
+#endif
+#if JULIA
+                    reference_c = { 0.5, 0.5 };
+                    juliaSet(window, game_screen_width, game_screen_height, reference_c, 1.0, 10);
 #endif
                 }
             }
@@ -230,52 +317,54 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
             }
             else if (event.type == SDL_MOUSEBUTTONDOWN)
             {
+                // Handle mouse input
+                int mouseX, mouseY;
+                SDL_GetMouseState(&mouseX, &mouseY); // Get the mouse position
+                // Do something 
+                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+#if JULIA
+                // To select the value of 'c'
+                // using the position of the mouse and then
+                // normalizing it between a value of -1-1i and 1+1i.
+                reference_c = { 2 * ((double)(mouseX)) / game_screen_width - 1.0,
+                                2 * ((double)(mouseY)) / game_screen_height - 1.0 };
+#endif
+
                 if ((event.button.button == 1) && (bReady_1))
                 {
                     bReady_1 = 0;
 
-                    // Handle mouse input
-                    int mouseX, mouseY;
-                    SDL_GetMouseState(&mouseX, &mouseY); // Get the mouse position
-                    // Do something 
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
 #if MANDELBROT
                     zoom *= ZOOM_FACTOR;
-                    center = { creal(center) + (mouseX - (WIDTH / 2)) / zoom,
-                                cimag(center) + (mouseY - (HEIGHT / 2)) / zoom };
+                    center = { creal(center) + (mouseX - (game_screen_width / 2)) / zoom,
+                                cimag(center) + (mouseY - (game_screen_height / 2)) / zoom };
 
-                    sdl_draw_mandelbrot(window, surface, center, zoom);
+                    sdl_draw_mandelbrot(window, game_screen_width, game_screen_height, center, zoom);
 #endif
-                }                
+#if JULIA
+                    juliaSet(window, game_screen_width, game_screen_height, reference_c, 1.0, 10);
+#endif
+                }
                 if ((event.button.button == 3) && (bReady_3))
                 {
                     bReady_3 = 0;
 
-                    // Handle mouse input
-                    int mouseX, mouseY;
-                    SDL_GetMouseState(&mouseX, &mouseY); // Get the mouse position
-                    // Do something 
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
 #if MANDELBROT
                     zoom /= ZOOM_FACTOR;
-                    center = { creal(center) + (mouseX - (WIDTH / 2)) / zoom,
-                                cimag(center) + (mouseY - (HEIGHT / 2)) / zoom };
+                    center = { creal(center) + (mouseX - (game_screen_width / 2)) / zoom,
+                                cimag(center) + (mouseY - (game_screen_height / 2)) / zoom };
 
-                    sdl_draw_mandelbrot(window, surface, center, zoom);
+                    sdl_draw_mandelbrot(window, game_screen_width, game_screen_height, center, zoom);
+#endif
+#if JULIA
+                    juliaSet(window, game_screen_width, game_screen_height, reference_c, 1.0, 10);
 #endif
                 }
             }

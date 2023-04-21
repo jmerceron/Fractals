@@ -1,8 +1,10 @@
 #pragma once
 
-
+//#define WIDTH       800
+//#define HEIGHT      600
 #define START_POS   -0.5
-#define START_ZOOM  (WIDTH * 0.25296875f)
+//#define START_ZOOM  (WIDTH * 0.25296875f)
+#define START_ZOOM  (800 * 0.25296875f)
 
 #define BAIL_OUT        2.0
 #define FLIPS           24
@@ -11,32 +13,32 @@
 
 # define M_LN2          0.69314718055994530942  /* log_e 2 */
 
-//#define complex _Dcomplex
-
-void sdl_draw_mandelbrot(SDL_Window* window, SDL_Surface* surface, _Dcomplex center, double zoom)
+void sdl_draw_mandelbrot(SDL_Window* window, const int width, const int height, _Dcomplex center, double zoom)
 {
     int f, x, y, n;
-    int maxiter = (WIDTH / 2) * 0.049715909 * log10(zoom);
+    int maxiter = (width / 2) * 0.049715909 * log10(zoom);
     _Dcomplex z, c;
     float C;
-    static SDL_Rect rects[HEIGHT / FLIPS];
+//    static SDL_Rect rects[height / FLIPS];
 
     fprintf(stderr, "zoom: %f\n", zoom);
-    fprintf(stderr, "center point: %f %+fi\n", creal(center),
-        cimag(center));
+    fprintf(stderr, "center point: %f %+fi\n", creal(center),cimag(center));
     fprintf(stderr, "iterations: %d\n", maxiter);
 
+    // Create the surface
+    SDL_Surface* surface = SDL_GetWindowSurface(window);
+    
     SDL_LockSurface(surface);
 
     for (f = 0; f < FLIPS; f++)
     {
-        for (y = f; y < HEIGHT; y += FLIPS)
+        for (y = f; y < height; y += FLIPS)
         {
-            for (x = 0; x < WIDTH; x++)
+            for (x = 0; x < width; x++)
             {
                 /* Get the complex point on gauss space to be calculated */
-                z = c = { (creal(center) + (x - (WIDTH / 2)) / zoom),
-                    (cimag(center) + (y - (HEIGHT / 2)) / zoom) };
+                z = c = { (creal(center) + (x - (width/ 2)) / zoom),
+                    (cimag(center) + (y - (height / 2)) / zoom) };
 
 #define X creal(z)
 #define Y cimag(z)
@@ -60,16 +62,13 @@ void sdl_draw_mandelbrot(SDL_Window* window, SDL_Surface* surface, _Dcomplex cen
                     SDL_MapRGB(surface->format,
                         (1 + sin(C * 0.27 + 5)) * 127., (1 + cos(C * 0.85)) * 127., (1 + sin(C * 0.15)) * 127.);
             }
-            rects[y / FLIPS].x = 0;
-            rects[y / FLIPS].y = y;
-            rects[y / FLIPS].w = WIDTH;
-            rects[y / FLIPS].h = 1;
+ //           rects[y / FLIPS].x = 0;
+ //           rects[y / FLIPS].y = y;
+ //           rects[y / FLIPS].w = width;
+ //           rects[y / FLIPS].h = 1;
         }
         SDL_UnlockSurface(surface);
         SDL_UpdateWindowSurface(window);
     }
-
-
-
 }
 
